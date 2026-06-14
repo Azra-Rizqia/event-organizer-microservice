@@ -1,0 +1,129 @@
+services:
+  # --- DATABASES ---
+  event-db:
+    image: mysql:8.4
+    container_name: event-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: event_db
+      MYSQL_USER: event_user
+      MYSQL_PASSWORD: event_password
+    ports:
+      - "3306:3306"
+    networks:
+      - microservice-network
+
+  postgres-user:
+    image: postgres:16
+    container_name: postgres-user
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: userdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_user_data:/var/lib/postgresql/data
+    networks:
+      - microservice-network
+
+  tiket-db:
+    image: mongo:8
+    container_name: tiket-db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: tiket_user
+      MONGO_INITDB_ROOT_PASSWORD: tiket_password
+      MONGO_INITDB_DATABASE: tiket_db
+    ports:
+      - "27017:27017"
+    networks:
+      - microservice-network
+
+  # Transaksi Service pakai SQLite (gk perlu pisah container database).
+
+  # --- SERVICES ---
+  event-service:
+    build: ./event-service
+    container_name: event-service
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: true
+      DB_CONNECTION: mysql
+      DB_HOST: event-db
+      DB_PORT: 3306
+      DB_DATABASE: event_db
+      DB_USERNAME: event_user
+      DB_PASSWORD: event_password
+    depends_on:
+      - event-db
+    networks:
+      - microservice-network
+
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    ports:
+      - "3001:3001"
+    environment:
+      DB_HOST: postgres-user
+      DB_PORT: 5432
+      DB_NAME: userdb
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    depends_on:
+      - postgres-user
+    networks:
+      - microservice-network
+
+  tiket-service:
+    build: ./tiket-service
+    container_name: tiket-service
+    ports:
+      - "3002:3002"
+    environment:
+      EVENT_SERVICE_URL: http://event-service:8000
+      MONGO_URI: mongodb://tiket_user:tiket_password@tiket-db:27017/tiket_db?authSource=admin
+    depends_on:
+      - tiket-db
+      - event-service
+    networks:
+      - microservice-network
+
+  transaksi-service:
+    build: ./transaksi-service
+    container_name: transaksi-service
+    ports:
+      - "5000:5000"
+    networks:
+      - microservice-network
+
+  graphql-gateway:
+    build: ./graphql-gateway
+    container_name: graphql-gateway
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: 4000
+      USER_SERVICE_URL: http://user-service:3001
+      EVENT_SERVICE_URL: http://event-service:8000
+      TIKET_SERVICE_URL: http://tiket-service:3002
+      TRANSAKSI_SERVICE_URL: http://transaksi-service:5000
+    depends_on:
+      - user-service
+      - event-service
+      - tiket-service
+      - transaksi-service
+    networks:
+      - microservice-network
+
+networks:
+  microservice-network:
+    driver: bridge
+
+volumes:
+  postgres_user_data:

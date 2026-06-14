@@ -1,18 +1,12 @@
 {
   "name": "ticket-service",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "start": "node server.js"
   },
   "dependencies": {
-    "cors": "^...",
-    "dotenv": "^...",
-    "express": "^...",
-    "mongoose": "^..."
-  },
-  "devDependencies": {
-    "nodemon": "^..."
+    "express": "^5.1.0",
+    "mongoose": "^8.9.5"
   }
 }
