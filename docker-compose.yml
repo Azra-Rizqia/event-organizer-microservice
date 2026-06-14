@@ -94,32 +94,32 @@ services:
     networks:
       - microservice-network
 
-  transaksi-service:
-    build: ./transaksi-service
-    container_name: transaksi-service
-    ports:
-      - "5000:5000"
-    networks:
-      - microservice-network
+  # transaksi-service:
+  #   build: ./transaksi-service
+  #   container_name: transaksi-service
+  #   ports:
+  #     - "5000:5000"
+  #   networks:
+  #     - microservice-network
 
-  graphql-gateway:
-    build: ./graphql-gateway
-    container_name: graphql-gateway
-    ports:
-      - "4000:4000"
-    environment:
-      PORT: 4000
-      USER_SERVICE_URL: http://user-service:3001
-      EVENT_SERVICE_URL: http://event-service:8000
-      TIKET_SERVICE_URL: http://tiket-service:3002
-      TRANSAKSI_SERVICE_URL: http://transaksi-service:5000
-    depends_on:
-      - user-service
-      - event-service
-      - tiket-service
-      - transaksi-service
-    networks:
-      - microservice-network
+  # graphql-gateway:
+  #   build: ./graphql-gateway
+  #   container_name: graphql-gateway
+  #   ports:
+  #     - "4000:4000"
+  #   environment:
+  #     PORT: 4000
+  #     USER_SERVICE_URL: http://user-service:3001
+  #     EVENT_SERVICE_URL: http://event-service:8000
+  #     TIKET_SERVICE_URL: http://tiket-service:3002
+  #     TRANSAKSI_SERVICE_URL: http://transaksi-service:5000
+  #   depends_on:
+  #     - user-service
+  #     - event-service
+  #     - tiket-service
+  #     - transaksi-service
+  #   networks:
+  #     - microservice-network
 
 networks:
   microservice-network:
